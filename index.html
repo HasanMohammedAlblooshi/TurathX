@@ -425,7 +425,7 @@ async function scanOnce(){
     let text=null;
     if(det){const r=await det.detect(video); if(r&&r.length)text=r[0].rawValue}
     else if(window.jsQR&&video.videoWidth){
-      const w=480,h=Math.round(480*video.videoHeight/video.videoWidth); off.width=w;off.height=h;octx.drawImage(video,0,0,w,h);
+      const w=Math.min(960,video.videoWidth),h=Math.round(w*video.videoHeight/video.videoWidth); off.width=w;off.height=h;octx.drawImage(video,0,0,w,h);
       const c=window.jsQR(octx.getImageData(0,0,w,h).data,w,h,{inversionAttempts:'dontInvert'}); if(c)text=c.data;
     }
     if(text)onCode(text);
@@ -435,7 +435,9 @@ async function scanOnce(){
 setInterval(scanOnce,250);
 function parseCode(text){
   const s=String(text).trim();
-  if(/^meridian:start/i.test(s)||/^start$/i.test(s))return {type:'start'};
+  if(/^meridian:start/i.test(s)||/^start$/i.test(s)||/^rakinnovates-heritage-start$/i.test(s))return {type:'start'};
+   const hm=s.match(/^rakinnovates-heritage-([a-z]\d+)$/i);
+   if(hm){const ar=((window.__DATA||{}).artefacts||[]).find(x=>x.id.toLowerCase()===hm[1].toLowerCase());return {type:'art',id:ar?ar.name_en:hm[1].toUpperCase()}}
   const m=s.match(/^meridian:art:(.+)$/i); return {type:'art',id:(m?m[1]:s).slice(0,60)};
 }
 function onCode(text){
@@ -670,7 +672,7 @@ function putQr(el,text){
   const c=document.createElement('small');c.textContent=text;el.appendChild(c);
 }
 function renderMarkers(){
-  putQr($('#qr-start'),'MERIDIAN:START');
+  putQr($('#qr-start'),'RAKINNOVATES-HERITAGE-START');
   const inp=$('#qr-name');if(!inp.value)inp.value="Pearl Divers Hall";
   const up=()=>putQr($('#qr-art'),'MERIDIAN:ART:'+(inp.value.trim()||'Artifact'));
   inp.oninput=up;up();
